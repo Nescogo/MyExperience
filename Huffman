@@ -1,0 +1,144 @@
+// кодирование Хаффмана
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <utility>
+
+using namespace std;
+
+struct Haffman {
+	char word;
+	int wsize;
+	string bite;
+};
+
+struct Tree {
+	string leaf;
+	int lsize;
+};
+
+bool cmp(Haffman a, Haffman b) {
+	return a.wsize > b.wsize;
+}
+
+bool cmpt(Tree a, Tree b) {
+	return a.lsize > b.lsize;
+}
+
+int main() {
+	string s, answ;
+	cin >> s;
+	// sum можно удалить
+	int n = s.size(), j = 0, sum = 1;
+	char w;
+	vector <Haffman> example(j+1);
+	vector <int> new_size(j + 1);
+	example[j].word = s[0];
+	example[j].wsize = 1;
+	new_size[j] = 1;
+	//создание массива символа и подсчет их частоты
+	for (int i = 1; i < n; i++) {
+		w = s[i];
+		int smena = 0;
+		for (int l = 0; l < (j + 1); l++) {
+			if (w == example[l].word) {
+				new_size[l] ++;
+				example[l].wsize = new_size[l];
+				smena++;
+				sum++;
+			}
+		}
+		if (smena == 0) {
+			j++;
+			example.resize(j + 1);
+			new_size.resize(j + 1);
+			new_size[j] = 1;
+			example[j].word = w;
+			example[j].wsize = 1;
+			sum++;
+		}
+	}
+	// очищаем массив
+	new_size.clear();
+	if (example.size() == 1) {
+		example[0].bite = "0";
+	}
+	else {
+		sort(example.begin(), example.end(), cmp);
+		//заводим дерево решений и заполняем массив
+		vector <Tree> trees(j + 1);
+		for (int i = 0; i <= j; i++) {
+			trees[i].leaf = example[i].word;
+			trees[i].lsize = example[i].wsize;
+		}
+		sort(trees.begin(), trees.end(), cmpt);
+		//переводим символ в бит
+		int vetvi = j, del, razm_univ, leaf_size, leaf_from = 0;
+		string perestan; //код для перестановки битов
+		while (vetvi != 0) {
+			int step = trees.size() - 1;
+			// распределение элементов по ветвям
+			if (trees[step - 1].leaf.size() < trees[step].leaf.size()) {
+				leaf_size = trees[step].leaf.size();
+				trees[step].leaf.append(trees[step - 1].leaf);
+				trees[step].lsize += trees[step - 1].lsize;
+				del = step - 1;
+				razm_univ = step;
+			}
+			else {
+				leaf_size = trees[step - 1].leaf.size();
+				trees[step - 1].leaf.append(trees[step].leaf);
+				trees[step - 1].lsize += trees[step].lsize;
+				del = step;
+				razm_univ = step - 1;
+			}
+			for (int i = 0; i < trees[razm_univ].leaf.size(); i++) {
+				for (int m = 0; m <= j; m++) {
+					if (example[m].word == trees[razm_univ].leaf[i]) {
+						if (trees[razm_univ].leaf.size() == 2) {
+							if (i == 0) {
+								example[m].bite.append("0");
+							}
+							else {
+								example[m].bite.append("1");
+							}
+						}
+						else {
+							perestan = example[m].bite;
+							example[m].bite.clear();
+							if (leaf_from < leaf_size) {
+								example[m].bite.append("1" + perestan);
+								leaf_from++;
+							}
+							else {
+								example[m].bite.append("0" + perestan);
+							}
+						}
+					}
+				}
+			}
+			leaf_from = 0;
+			trees.erase(trees.begin() + del);
+			vetvi--;
+			sort(trees.begin(), trees.end(), cmpt);
+		}
+	}
+	
+	for (int i = 0; i < n; i++) {
+		for (int l = 0; l <= j; l++) {
+			if (s[i] == example[l].word) {
+				answ.append(example[l].bite);
+				break;
+			}
+		}
+	}
+	cout << (j+1) << " " << answ.size() << endl;
+	for (int i = 0; i <= j; i++) {
+
+		cout << example[i].word << ": " << example[i].bite << endl;
+	}
+	cout << answ;
+	return 0;
+}
