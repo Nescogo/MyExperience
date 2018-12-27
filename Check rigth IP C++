@@ -1,0 +1,128 @@
+// ConsoleStepic.cpp: РѕРїСЂРµРґРµР»СЏРµС‚ С‚РѕС‡РєСѓ РІС…РѕРґР° РґР»СЏ РєРѕРЅСЃРѕР»СЊРЅРѕРіРѕ РїСЂРёР»РѕР¶РµРЅРёСЏ.
+//позиции: i/2 -> i -> 2i or 2i+1
+
+#include "stdafx.h"
+#include <iostream>
+#include <string>
+#include <stdlib.h>
+
+using namespace std;
+
+void size(int a, int b, int &proverka, int n) {
+	if (n >= a && n <= b) {
+		proverka *= 1;
+	}
+	else {
+		proverka = 0;
+		cout << "Wrong size" << endl;
+	}
+}
+
+void strong(int a, int b, int &proverka) {
+	if (a == b) {
+		proverka *= 1;
+	}
+	else {
+		proverka = 0;
+		cout << "Wrong points num" << endl;
+	}
+
+}
+
+void ProvIp(string s, int a, int b, int &proverka) {
+	cout << "Num b: " << b << " / " << "Num a: " << a << endl;
+	string ss = s.substr(a, b-a+1);
+	cout << "prov num:" << ss << endl;
+	if ((b - a) > 0 && (char)ss[0] == '0') {
+		proverka = 0;
+		cout << "Too much zeros" << endl;
+	}
+	else {
+		int m = atoi(ss.c_str());
+		if (m >= 0 && m <= 255) {
+			proverka *= 1;
+		}
+		else {
+			proverka = 0;
+			cout << "So big/small num" << endl;
+		}
+	}
+}
+
+int main()
+{
+	// read IP 
+	string s;
+	getline(cin, s);
+	// вводим проверочные переменные 
+	int every = 0, points = 0, proverka = 1, block = 0, from = 0, endto = -2;
+	int n = s.length();
+	size(7, 15, proverka, n);
+	//в тексте должны быть только цифры или "." 
+	for (auto c : s) {
+		if (c == '.' || (c >= '0' && c <= '9')) {
+			proverka *= 1;
+		}
+		else {
+			proverka = 0;
+			cout << "Some wrong symb" << endl;
+		}
+	}
+	//считаем кол-во точек (3) и цифр между ними (1-3) 
+	for (auto c : s) {
+		if (c == '.') {
+			points++;
+			every = 0;
+		}
+		else {
+			every++;
+			size(1, 3, proverka, every); //проверяем кол-во цифр между точками 
+			if (proverka == 0) {
+				break;
+			}
+		}
+	}
+	cout << "Num of points: " << points << endl;
+	strong(points, 3, proverka); //проверяем количесвто точек 
+								 //проверяем соотвтетствие адреса IP и количество блоков цифр 
+	for (int i = 1; i < n; i++) {
+		if (proverka == 1) {
+			//находим конец блока с цифрами 
+			if (((char)s[i - 1] != '.' && (char)s[i] == '.')) {
+				block++;
+				if (i == s.find_first_of('.')) {
+					from = 0;
+					endto = i - 1;
+					cout << "block 1" << endl;
+				}
+				else {
+					from = endto + 2;
+					endto = i - 1;
+					cout << "block 2" << endl;
+				}
+				//при смене позиции от предыдущего конца идем на 2 позиции вправо 
+				ProvIp(s, from, endto, proverka);
+			}
+			else if (i == (n - 1) && (char)s[i] != '.') {
+				from = endto + 2;
+				endto = i;
+				ProvIp(s, from, endto, proverka);
+				block++;
+				cout << "block 3" << endl;
+			}
+		}
+		else {
+			break;
+		}
+	}
+	cout << "Num of blocks: " << block << endl;
+	strong(block, 4, proverka);
+	//финальная проверка условий 
+	if (proverka == 1) {
+		cout << "YES";
+	}
+	else {
+		cout << "NO";
+	}
+	return 0;
+}
